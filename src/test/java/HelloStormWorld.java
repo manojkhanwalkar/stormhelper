@@ -10,7 +10,7 @@ public class HelloStormWorld {
 
     public static void main(String[] args) {
         Config conf = new Config();
-        conf.setDebug(true);
+        //conf.setDebug(true);
         conf.setNumWorkers(2);
 
         LocalCluster cluster = new LocalCluster();
@@ -24,5 +24,7 @@ public class HelloStormWorld {
      //   cluster.killTopology("test");
        // cluster.shutdown();
     }
+
+    //TODO - spout to read from file - send to two bolts - one writes to
 
 }
