@@ -130,10 +130,12 @@ public class TreeService implements Service {
 
         tmpNodesSeen.putAll(nodesSeen);
 
-        Node n = tmpNodesSeen.get(firstNode);
+        tmpNodesSeen.remove(firstNode);
 
-        printBF(n);
+        tmpNodesSeen.values().stream().forEach(n->{
 
+            createBoltFromTemplate(n.getName());
+        });
 
 
     }
@@ -147,9 +149,6 @@ public class TreeService implements Service {
     private void createBoltFromTemplate(String name)
     {
 
-
-
-
         Properties p = new Properties();
         p.setProperty("file.resource.loader.path", "/Users/mkhanwalkar/stormhelper/src/main/java");
         Velocity.init(p);
@@ -157,7 +156,7 @@ public class TreeService implements Service {
 
         VelocityContext context = new VelocityContext();
 
-        context.put( "name", new String(firstNode) );
+        context.put( "name", name);
 
         Template template = null;
 
@@ -177,7 +176,7 @@ public class TreeService implements Service {
         String s = sw.toString();
 
         try {
-            FileWriter fW = new FileWriter("/Users/mkhanwalkar/stormhelper/src/main/java/stormappbeans/Spout"+firstNode+".java");
+            FileWriter fW = new FileWriter("/Users/mkhanwalkar/stormhelper/src/main/java/stormappbeans/Bolt"+name+".java");
             fW.write(s);
             fW.flush();
             fW.close();

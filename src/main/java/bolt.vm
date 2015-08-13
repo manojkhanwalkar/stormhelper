@@ -11,7 +11,7 @@ import backtype.storm.tuple.Values;
 
 import java.util.Map;
 
-public  class $name implements IRichBolt {
+public  class Bolt$name implements IRichBolt {
 OutputCollector _collector;
 
 public void prepare(Map conf, TopologyContext context, OutputCollector collector) {
