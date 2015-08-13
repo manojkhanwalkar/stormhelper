@@ -2,7 +2,7 @@ package tree;
 
 import server.Service;
 
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by mkhanwalkar on 8/12/15.
@@ -21,8 +21,46 @@ public class TreeService implements Service {
         this.nodes = nodes;
     }
 
+
+    Map<String,Node> nodesSeen = new HashMap<>();
+    private Node getNode(String name)
+    {
+        Node currNode =  nodesSeen.get(name);
+        if (currNode==null)
+        {
+            currNode = new Node();
+            currNode.setName(name);
+            nodesSeen.put(name,currNode);
+        }
+
+        return currNode ;
+    }
+
+    String firstNode =null;
+
     @Override
     public void init() {
+
+        nodes.stream().forEach(s -> {
+            String[] nodeNames = s.split(",");
+
+            if (firstNode == null )
+                firstNode = nodeNames[0];
+
+            Node prevNode = getNode(nodeNames[0]);
+
+            for (int i=1;i<nodeNames.length;i++)
+            {
+                String name = nodeNames[i];
+                Node currNode = getNode(nodeNames[i]);
+                prevNode.addNode(currNode);
+                prevNode = currNode;
+            }
+
+
+        });
+
+        System.out.println(nodesSeen.get(firstNode));
 
     }
 

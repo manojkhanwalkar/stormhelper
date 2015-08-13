@@ -21,7 +21,23 @@
 
     <bean id="TreeService" class="tree.TreeService">
         <property name="name" value="TreeService" />
+        <property name="nodes">
+            <list>
+                <value>A,B,C,D</value>
+                <value>A,F</value>
+                <value>B,G</value>
+            </list>
+        </property>
     </bean>
+
+    <bean id="A" class="appbeans.A"/>
+    <bean id="B" class="appbeans.B"/>
+    <bean id="C" class="appbeans.C"/>
+    <bean id="D" class="appbeans.D"/>
+    <bean id="E" class="appbeans.E"/>
+    <bean id="F" class="appbeans.F"/>
+    <bean id="G" class="appbeans.G"/>
+
 
 
 </beans>
