@@ -123,8 +123,68 @@ public class TreeService implements Service {
 
     }
 
+
     private void createBoltFromTemplate()
     {
+        Map<String,Node> tmpNodesSeen = new HashMap<>();
+
+        tmpNodesSeen.putAll(nodesSeen);
+
+        Node n = tmpNodesSeen.get(firstNode);
+
+        printBF(n);
+
+
+
+    }
+
+    private void printBF(Node n)
+    {
+
+        System.out.println(n.getName());
+    }
+
+    private void createBoltFromTemplate(String name)
+    {
+
+
+
+
+        Properties p = new Properties();
+        p.setProperty("file.resource.loader.path", "/Users/mkhanwalkar/stormhelper/src/main/java");
+        Velocity.init(p);
+        //  ve.init();
+
+        VelocityContext context = new VelocityContext();
+
+        context.put( "name", new String(firstNode) );
+
+        Template template = null;
+
+        try
+        {
+            template = Velocity.getTemplate("bolt.vm");
+        }
+        catch( Exception e )
+        {
+            e.printStackTrace();
+        }
+
+        StringWriter sw = new StringWriter();
+
+        template.merge( context, sw );
+
+        String s = sw.toString();
+
+        try {
+            FileWriter fW = new FileWriter("/Users/mkhanwalkar/stormhelper/src/main/java/stormappbeans/Spout"+firstNode+".java");
+            fW.write(s);
+            fW.flush();
+            fW.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
     }
 
