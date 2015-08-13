@@ -1,7 +1,21 @@
 package tree;
 
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
 import server.Service;
 
+import javax.tools.JavaCompiler;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.*;
 
 /**
@@ -61,6 +75,98 @@ public class TreeService implements Service {
         });
 
         System.out.println(nodesSeen.get(firstNode));
+
+        createSpoutFromTemplate();
+        createBoltFromTemplate();
+       // compileGeneratedCode();  TODO - get storm jars in the class path , plus the app beans .
+
+    }
+
+    private void createSpoutFromTemplate()
+    {
+        Properties p = new Properties();
+        p.setProperty("file.resource.loader.path", "/Users/mkhanwalkar/stormhelper/src/main/java");
+        Velocity.init(p);
+        //  ve.init();
+
+        VelocityContext context = new VelocityContext();
+
+        context.put( "name", new String(firstNode) );
+
+        Template template = null;
+
+        try
+        {
+            template = Velocity.getTemplate("spout.vm");
+        }
+        catch( Exception e )
+        {
+            e.printStackTrace();
+        }
+
+        StringWriter sw = new StringWriter();
+
+        template.merge( context, sw );
+
+        String s = sw.toString();
+
+        try {
+            FileWriter fW = new FileWriter("/Users/mkhanwalkar/stormhelper/src/main/java/stormappbeans/Spout"+firstNode+".java");
+            fW.write(s);
+            fW.flush();
+            fW.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
+    }
+
+    private void createBoltFromTemplate()
+    {
+
+    }
+
+
+    private void compileGeneratedCode()
+    {
+        try {
+            JavaCompiler jc = ToolProvider.getSystemJavaCompiler();
+            StandardJavaFileManager sjfm = jc.getStandardFileManager(null, null, null);
+
+            File javaFile = new File("/Users/mkhanwalkar/stormhelper/src/main/java/stormappbeans/SpoutA.java");
+            Iterable fileObjects = sjfm.getJavaFileObjects(javaFile);
+            String[] options = new String[]{"-d", "/tmp/tmp"};
+
+            jc.getTask(null, null, null, Arrays.asList(options), null, fileObjects).call();
+            sjfm.close();
+            System.out.println("Class has been successfully compiled");
+
+
+            URL[] urls = new URL[]{ new URL("file:///tmp/tmp/") };
+            URLClassLoader ucl = new URLClassLoader(urls);
+            Class clazz = ucl.loadClass("SpoutA");
+            System.out.println("Class has been successfully loaded");
+
+            Method method = clazz.getDeclaredMethod("callMe", null);
+
+            Object object = clazz.newInstance();
+            method.invoke(object, null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
 
     }
 
