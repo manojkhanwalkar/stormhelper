@@ -1,5 +1,7 @@
 package stormappbeans;
 
+import appbeans.Processor;
+import appbeans.$name;
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -20,11 +22,7 @@ SpoutOutputCollector _collector;
 public Spout$name() {
 }
 
-public void callMe()
-{
-    System.out.println("Hello World from generated and compiled spout" );
-}
-
+Processor processor = new $name();
 
 public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 this._collector = collector;
