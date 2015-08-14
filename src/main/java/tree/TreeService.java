@@ -139,31 +139,45 @@ public class TreeService implements Service {
             createBoltFromTemplate(n.getName());
         });
 
-        printBF(node);
+
+        List<Node> processedNodes = printBF(node);
+
+    /*    processedNodes.stream().forEach(n->{
+
+            System.out.println( n.getName() + "  " + n.getParentName());
+
+        });*/
+
+        processedNodes.remove(0);
+
+        createStarterFromTemplate(firstNode,processedNodes);
+
 
 
     }
 
-    private void printBF(Node n)
+    private List<Node> printBF(Node n)
     {
+        List<Node> processedNodes = new ArrayList<>();
         Queue<Node> nodes = new ArrayDeque<>();
 
         nodes.add(n);
 
-        String level = " ";
-        n.setLevel(level);
-
         while (!nodes.isEmpty())
         {
             Node node = nodes.remove();
-            System.out.println(node.getLevel() + node.getName());
-                String level1 = node.getLevel()+" ";
+            processedNodes.add(node);
+
+
                 node.getNodes().stream().forEach((n1) -> {
-                    n1.setLevel(level1);
+                    n1.setParentName(node.getName());
+
                 });
 
             nodes.addAll(node.getNodes()); // asssumes no cyclic dependency .
         }
+
+        return processedNodes;
 
 
     }
@@ -208,6 +222,51 @@ public class TreeService implements Service {
 
 
     }
+
+
+    private void createStarterFromTemplate(String spoutName, List<Node> nodes)
+    {
+
+        Properties p = new Properties();
+        p.setProperty("file.resource.loader.path", "/Users/mkhanwalkar/stormhelper/src/test/java");
+        Velocity.init(p);
+        //  ve.init();
+
+        VelocityContext context = new VelocityContext();
+
+        context.put( "spoutname", spoutName);
+        context.put("nodes", nodes);
+
+        Template template = null;
+
+        try
+        {
+            template = Velocity.getTemplate("stormstarter.vm");
+        }
+        catch( Exception e )
+        {
+            e.printStackTrace();
+        }
+
+        StringWriter sw = new StringWriter();
+
+        template.merge( context, sw );
+
+        String s = sw.toString();
+
+        try {
+            FileWriter fW = new FileWriter("/Users/mkhanwalkar/stormhelper/src/test/java/StormStarter.java");
+            fW.write(s);
+            fW.flush();
+            fW.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+
 
 
     private void compileGeneratedCode()

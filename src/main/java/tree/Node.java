@@ -10,14 +10,14 @@ public class Node {
 
     String name ;
 
-    String level =null;
+    String parentName =null;
 
-    public String getLevel() {
-        return level;
+    public String getParentName() {
+        return parentName;
     }
 
-    public void setLevel(String level) {
-        this.level = level;
+    public void setParentName(String parentName) {
+        this.parentName = parentName;
     }
 
     List<Node> nodes = new ArrayList<>();

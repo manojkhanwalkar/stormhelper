@@ -1,0 +1,37 @@
+
+import backtype.storm.Config;
+import backtype.storm.LocalCluster;
+import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.utils.Utils;
+import stormappbeans.*;
+
+public class StormStarter {
+
+public static void main(String[] args) {
+
+
+Config conf = new Config();
+conf.setNumWorkers(2);
+
+LocalCluster cluster = new LocalCluster();
+TopologyBuilder builder = new TopologyBuilder();
+
+
+builder.setSpout("$spoutname", new Spout$spoutname(), 10);
+
+#foreach ($node in $nodes)
+builder.setBolt("$node.getName()", new Bolt$node.getName()(), 3).shuffleGrouping("$node.getParentName()");
+#end
+
+
+cluster.submitTopology("test", conf, builder.createTopology());
+
+System.out.println("=========================>>>> Submitted to cluster");
+Utils.sleep(100000);
+//     System.out.println("Killing topology");
+//   cluster.killTopology("test");
+// cluster.shutdown();
+}
+
+
+}
