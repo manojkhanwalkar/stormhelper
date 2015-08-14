@@ -23,7 +23,7 @@
         <property name="name" value="TreeService" />
         <property name="nodes">
             <list>
-                <value>A,B,C,D</value>
+                <value>A,B,C,D,Z</value>
                 <value>A,F,E</value>
                 <value>B,G</value>
             </list>

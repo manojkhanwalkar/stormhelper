@@ -25,6 +25,7 @@ builder.setBolt("C", new BoltC(), 3).shuffleGrouping("B");
 builder.setBolt("G", new BoltG(), 3).shuffleGrouping("B");
 builder.setBolt("E", new BoltE(), 3).shuffleGrouping("F");
 builder.setBolt("D", new BoltD(), 3).shuffleGrouping("C");
+builder.setBolt("Z", new BoltZ(), 3).shuffleGrouping("D");
 
 
 cluster.submitTopology("test", conf, builder.createTopology());
