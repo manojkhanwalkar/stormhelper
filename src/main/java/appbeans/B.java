@@ -1,12 +1,14 @@
 package appbeans;
 
+import java.util.List;
+
 /**
  * Created by mkhanwalkar on 8/12/15.
  */
-public class B implements Processor {
+public class B implements OutputProcessor {
 
     @Override
-    public void process() {
-        System.out.println(this);
+    public List<Object> getValues(List<Object> objects) {
+        return objects;
     }
 }

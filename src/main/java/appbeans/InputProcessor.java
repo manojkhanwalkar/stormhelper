@@ -3,8 +3,8 @@ package appbeans;
 /**
  * Created by mkhanwalkar on 8/12/15.
  */
-public interface Processor {
+public interface InputProcessor {
 
-    public void process();
+    public Object[] getValues();
 
 }
