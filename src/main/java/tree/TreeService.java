@@ -130,20 +130,42 @@ public class TreeService implements Service {
 
         tmpNodesSeen.putAll(nodesSeen);
 
-        tmpNodesSeen.remove(firstNode);
+
+
+        Node node = tmpNodesSeen.remove(firstNode);
 
         tmpNodesSeen.values().stream().forEach(n->{
 
             createBoltFromTemplate(n.getName());
         });
 
+        printBF(node);
+
 
     }
 
     private void printBF(Node n)
     {
+        Queue<Node> nodes = new ArrayDeque<>();
 
-        System.out.println(n.getName());
+        nodes.add(n);
+
+        String level = " ";
+        n.setLevel(level);
+
+        while (!nodes.isEmpty())
+        {
+            Node node = nodes.remove();
+            System.out.println(node.getLevel() + node.getName());
+                String level1 = node.getLevel()+" ";
+                node.getNodes().stream().forEach((n1) -> {
+                    n1.setLevel(level1);
+                });
+
+            nodes.addAll(node.getNodes()); // asssumes no cyclic dependency .
+        }
+
+
     }
 
     private void createBoltFromTemplate(String name)

@@ -10,6 +10,16 @@ public class Node {
 
     String name ;
 
+    String level =null;
+
+    public String getLevel() {
+        return level;
+    }
+
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
     List<Node> nodes = new ArrayList<>();
 
     public String getName() {
