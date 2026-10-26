@@ -8,6 +8,23 @@
     <artifactId>stormhelper</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <!-- Last 4.x release; 4.1.5 had known CVEs (e.g. CVE-2022-22950, CVE-2018-1275). -->
+        <spring.version>4.3.30.RELEASE</spring.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- velocity 1.7 pulls commons-collections 3.2.1, which contains the
+                 InvokerTransformer deserialization gadget (CVE-2015-7501). 3.2.2 disables it. -->
+            <dependency>
+                <groupId>commons-collections</groupId>
+                <artifactId>commons-collections</artifactId>
+                <version>3.2.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 <dependencies>
 
     <dependency>
@@ -26,20 +43,20 @@
     <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-context</artifactId>
-        <version>4.1.5.RELEASE</version>
+        <version>${spring.version}</version>
     </dependency>
 
 
     <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-core</artifactId>
-        <version>4.1.5.RELEASE</version>
+        <version>${spring.version}</version>
     </dependency>
 
     <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-beans</artifactId>
-        <version>4.1.5.RELEASE</version>
+        <version>${spring.version}</version>
     </dependency>
 
 
