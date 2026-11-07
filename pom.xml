@@ -10,7 +10,7 @@
 
     <properties>
         <!-- Last 4.x release; 4.1.5 had known CVEs (e.g. CVE-2022-22950, CVE-2018-1275). -->
-        <spring.version>4.3.30.RELEASE</spring.version>
+        <spring.version>5.2.22.RELEASE</spring.version>
     </properties>
 
     <dependencyManagement>
