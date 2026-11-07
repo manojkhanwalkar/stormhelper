@@ -12,11 +12,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Created by mkhanwalkar on 8/12/15.
@@ -36,9 +40,25 @@ public class TreeService implements Service {
     }
 
 
+    /**
+     * Node names are interpolated into generated Java source (class names, string
+     * literals) and into output file names, so only plain Java identifiers are accepted.
+     * This blocks code injection into the generated classes and path traversal
+     * (e.g. "../../x") when writing them.
+     */
+    private static final Pattern NODE_NAME = Pattern.compile("[A-Za-z_][A-Za-z0-9_]{0,63}");
+
+    static String validateNodeName(String name)
+    {
+        if (name == null || !NODE_NAME.matcher(name).matches())
+            throw new IllegalArgumentException("Invalid node name (must be a Java identifier): " + name);
+        return name;
+    }
+
     Map<String,Node> nodesSeen = new HashMap<>();
     private Node getNode(String name)
     {
+        validateNodeName(name);
         Node currNode =  nodesSeen.get(name);
         if (currNode==null)
         {
@@ -56,7 +76,7 @@ public class TreeService implements Service {
     public void init() {
 
         nodes.stream().forEach(s -> {
-            String[] nodeNames = s.split(",");
+            String[] nodeNames = s.trim().split("\\s*,\\s*");
 
             if (firstNode == null )
                 firstNode = nodeNames[0];
@@ -93,16 +113,7 @@ public class TreeService implements Service {
 
         context.put( "name", new String(firstNode) );
 
-        Template template = null;
-
-        try
-        {
-            template = Velocity.getTemplate("spout.vm");
-        }
-        catch( Exception e )
-        {
-            e.printStackTrace();
-        }
+        Template template = loadTemplate("spout.vm");
 
         StringWriter sw = new StringWriter();
 
@@ -110,14 +121,7 @@ public class TreeService implements Service {
 
         String s = sw.toString();
 
-        try {
-            FileWriter fW = new FileWriter("/Users/mkhanwalkar/stormhelper/src/main/java/stormappbeans/Spout"+firstNode+".java");
-            fW.write(s);
-            fW.flush();
-            fW.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        writeFile("/Users/mkhanwalkar/stormhelper/src/main/java/stormappbeans/Spout"+firstNode+".java", s);
 
 
 
@@ -194,16 +198,7 @@ public class TreeService implements Service {
 
         context.put( "name", name);
 
-        Template template = null;
-
-        try
-        {
-            template = Velocity.getTemplate("bolt.vm");
-        }
-        catch( Exception e )
-        {
-            e.printStackTrace();
-        }
+        Template template = loadTemplate("bolt.vm");
 
         StringWriter sw = new StringWriter();
 
@@ -211,14 +206,7 @@ public class TreeService implements Service {
 
         String s = sw.toString();
 
-        try {
-            FileWriter fW = new FileWriter("/Users/mkhanwalkar/stormhelper/src/main/java/stormappbeans/Bolt"+name+".java");
-            fW.write(s);
-            fW.flush();
-            fW.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        writeFile("/Users/mkhanwalkar/stormhelper/src/main/java/stormappbeans/Bolt"+name+".java", s);
 
 
     }
@@ -237,16 +225,7 @@ public class TreeService implements Service {
         context.put( "spoutname", spoutName);
         context.put("nodes", nodes);
 
-        Template template = null;
-
-        try
-        {
-            template = Velocity.getTemplate("stormstarter.vm");
-        }
-        catch( Exception e )
-        {
-            e.printStackTrace();
-        }
+        Template template = loadTemplate("stormstarter.vm");
 
         StringWriter sw = new StringWriter();
 
@@ -254,20 +233,34 @@ public class TreeService implements Service {
 
         String s = sw.toString();
 
-        try {
-            FileWriter fW = new FileWriter("/Users/mkhanwalkar/stormhelper/src/test/java/StormStarter.java");
-            fW.write(s);
-            fW.flush();
-            fW.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        writeFile("/Users/mkhanwalkar/stormhelper/src/test/java/StormStarter.java", s);
 
 
     }
 
 
 
+
+    private static Template loadTemplate(String name)
+    {
+        try
+        {
+            return Velocity.getTemplate(name);
+        }
+        catch( Exception e )
+        {
+            throw new IllegalStateException("Unable to load template " + name, e);
+        }
+    }
+
+    private static void writeFile(String path, String content)
+    {
+        try (FileWriter fW = new FileWriter(path)) {
+            fW.write(content);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Unable to write generated file " + path, e);
+        }
+    }
 
     private void compileGeneratedCode()
     {
@@ -277,14 +270,17 @@ public class TreeService implements Service {
 
             File javaFile = new File("/Users/mkhanwalkar/stormhelper/src/main/java/stormappbeans/SpoutA.java");
             Iterable fileObjects = sjfm.getJavaFileObjects(javaFile);
-            String[] options = new String[]{"-d", "/tmp/tmp"};
+            // Private (owner-only) temp dir: a fixed, shared path such as /tmp/tmp lets
+            // another local user plant classes that would then be loaded and executed.
+            Path outDir = Files.createTempDirectory("stormhelper-classes");
+            String[] options = new String[]{"-d", outDir.toString()};
 
             jc.getTask(null, null, null, Arrays.asList(options), null, fileObjects).call();
             sjfm.close();
             System.out.println("Class has been successfully compiled");
 
 
-            URL[] urls = new URL[]{ new URL("file:///tmp/tmp/") };
+            URL[] urls = new URL[]{ outDir.toUri().toURL() };
             URLClassLoader ucl = new URLClassLoader(urls);
             Class clazz = ucl.loadClass("SpoutA");
             System.out.println("Class has been successfully loaded");
